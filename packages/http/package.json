@@ -1,0 +1,27 @@
+{
+  "name": "@zille/http",
+  "version": "2.1.0",
+  "description": "somethings",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf ./dist && tsc -d && fix-esm-import-path ./dist"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "fix-esm-import-path": "^1.4.0",
+    "koa": "^2.15.0"
+  },
+  "dependencies": {
+    "@zille/configurator": "workspace:^",
+    "@zille/core": "workspace:^",
+    "find-my-way": "^8.1.0",
+    "koa-compose": "^4.1.0"
+  }
+}

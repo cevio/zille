@@ -1,0 +1,28 @@
+{
+  "name": "zille",
+  "version": "2.1.0",
+  "description": "JavaScript Private Package Manager, Registry &amp; Website",
+  "private": true,
+  "scripts": {
+    "versions": "node ./scripts/versions.mjs",
+    "create": "node scripts/create.mjs -trace-warnings",
+    "pub": "lerna run build && git add . && git commit -am 'update' && git push && lerna publish",
+    "init": "pnpm i",
+    "watch": "lerna watch -- lerna run build",
+    "dev:core": "node --loader ts-node/esm packages/test/src/core.ts",
+    "dev:service": "node --loader ts-node/esm packages/test/src/service.ts",
+    "dev:http": "node --loader ts-node/esm packages/test/src/http.ts",
+    "test": "node packages/blog/dist/test.js"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.2",
+    "@types/node": "^20.8.6",
+    "@types/npmlog": "^4.1.4",
+    "fs-extra": "^11.1.1",
+    "inquirer": "^9.2.11",
+    "lerna": "^7.3.1",
+    "npmlog": "^7.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}

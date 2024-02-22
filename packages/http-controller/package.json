@@ -1,0 +1,30 @@
+{
+  "name": "@zille/http-controller",
+  "version": "2.1.0",
+  "description": "somethings",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf ./dist && tsc -d && fix-esm-import-path ./dist"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "fix-esm-import-path": "^1.4.0"
+  },
+  "dependencies": {
+    "@zille/annotation": "workspace:^",
+    "@zille/core": "workspace:^",
+    "@zille/http": "workspace:^",
+    "@zille/service": "workspace:^",
+    "find-my-way": "^8.1.0",
+    "glob": "^10.3.10",
+    "path-to-regexp": "^6.2.1",
+    "reflect-metadata": "^0.2.1"
+  }
+}

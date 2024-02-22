@@ -1,0 +1,23 @@
+{
+  "name": "@zille/core",
+  "version": "2.1.0",
+  "description": "somethings",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf ./dist && tsc -d && fix-esm-import-path ./dist"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "fix-esm-import-path": "^1.4.0"
+  },
+  "dependencies": {
+    "@zille/annotation": "workspace:^"
+  }
+}
