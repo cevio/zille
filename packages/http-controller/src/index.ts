@@ -9,6 +9,7 @@ import { Middleware } from 'koa';
 import { Response } from './response';
 
 export interface LoadControllerProps {
+  prefix?: string,
   suffix?: string,
   defaultPath?: string,
   transformPhysicalPathToRoutingPath?(path: string): string,
@@ -49,7 +50,7 @@ function LoadController(
     path = path.substring(0, path.length - suffix.length);
   }
   if (!path) path = '/';
-  const physicalPath = path;
+  const physicalPath = options.prefix ? options.prefix + path : path;
   const routingPath = options.transformPhysicalPathToRoutingPath
     ? options.transformPhysicalPathToRoutingPath(path)
     : path.replace(/\[([^\]]+)\]/g, ':$1');
