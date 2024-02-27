@@ -1,10 +1,16 @@
-import { Controller } from '@zille/http-controller';
-import { Context } from 'koa';
+import { Controller, Response } from '@zille/http-controller';
 
-@Controller.Injectable()
-@Controller.Method('GET')
-export default class extends Controller {
-  public async main(ctx: Context): Promise<void> {
-    ctx.body = 'hello world';
+const { Injectable, Method, Context, Query } = Controller;
+
+@Injectable()
+@Method('GET')
+export default class ABC extends Controller {
+  public async main(
+    @Context(ctx => ctx.url)
+    url: string,
+    @Query('abc', Number)
+    abc: number,
+  ) {
+    return Response.html(`${url}:${abc + 1}`)
   }
 }

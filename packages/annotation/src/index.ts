@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { EventEmitter } from 'node:events';
 import { ClassAnnotation } from "./class";
 import { MethodAnnotation } from "./method";
 import { ParamterAnnotation } from "./parameter";
@@ -14,12 +15,38 @@ export interface Newable<T = any> {
   new(...args: any[]): T,
 }
 
-export class Annotation {
+export class Annotation extends EventEmitter {
   static readonly namespace = Symbol('META');
   public readonly classes = new Map<any, ClassAnnotation<any[], any>>();
-  public readonly methods = new Map<string | symbol, Map<any, MethodAnnotation<any[], any>>>();
+  public readonly methods = new Map<string | symbol, Map<any, PropertyAnnotation<any[], any>>>();
   public readonly properties = new Map<string | symbol, Map<any, PropertyAnnotation<any[], any>>>();
-  public readonly parameters = new Map<string | symbol, Map<any, ParamterAnnotation<any[], any>>[]>();
+  public readonly parameters = new Map<string | symbol, ParamterAnnotation<any[], any>[][]>();
+
+  constructor() {
+    super();
+    this.setMaxListeners(+Infinity);
+  }
+
+  public async executeParamters<T>(property: string | symbol, context: T) {
+    if (!this.parameters.has(property)) return [];
+    const parameters = this.parameters.get(property);
+    const result: any[] = [];
+
+    for (let i = 0; i < parameters.length; i++) {
+      const parameter = parameters[i];
+      if (!parameter) continue;
+      let value: any = context;
+
+      for (let j = 0; j < parameter.length; j++) {
+        const annotation = parameter[j];
+        value = await Promise.resolve(annotation.transform(annotation, value));
+      }
+
+      result[i] = value;
+    }
+
+    return result;
+  }
 
   static getInstance<T extends Annotation>(clazz: Newable, maker: () => T): T {
     if (!Reflect.hasMetadata(Annotation.namespace, clazz)) {
@@ -64,11 +91,11 @@ export class Annotation {
         let annotations: IAnnotions;
         let annotation: MethodAnnotation<P, M>;
 
-        if (meta.methods.has(property)) {
-          annotations = meta.methods.get(property) as IAnnotions;
+        if (meta.properties.has(property)) {
+          annotations = meta.properties.get(namespace) as IAnnotions;
         } else {
           annotations = new Map();
-          meta.methods.set(property, annotations);
+          meta.properties.set(property, annotations);
         }
 
         if (annotations.has(namespace)) {
@@ -122,9 +149,9 @@ export class Annotation {
     }
   }
 
-  static createParameterDecorator<P extends any[], M extends Annotation>(
-    namespace: any, maker: () => M,
-    callback?: (anno: ParamterAnnotation<P, M>) => unknown
+  static createParameterDecorator<P extends any[], M extends Annotation, T = any>(
+    maker: () => M,
+    callback: (anno: ParamterAnnotation<P, M, T>, context: T) => unknown
   ) {
     return (...args: P): ParameterDecorator => {
       return (target, property, index) => {
@@ -138,22 +165,12 @@ export class Annotation {
         const positions = meta.parameters.get(property);
 
         if (!positions[index]) {
-          positions[index] = new Map();
+          positions[index] = [];
         }
 
-        let annotation: ParamterAnnotation<P, M>;
-        const annotations = positions[index] as Map<any, ParamterAnnotation<P, M>>;
-        if (annotations.has(namespace)) {
-          annotation = annotations.get(namespace);
-          annotation.parameters.unshift(...args);
-        } else {
-          annotation = new ParamterAnnotation(meta, ctor, args, property, index);
-          annotations.set(namespace, annotation);
-        }
+        const annotation = new ParamterAnnotation(meta, ctor, args, property, index, callback);
 
-        if (typeof callback === 'function') {
-          callback(annotation);
-        }
+        positions[index].unshift(annotation);
       }
     }
   }

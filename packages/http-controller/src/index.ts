@@ -6,6 +6,7 @@ import { Instance } from '@zille/http';
 import { compile, match } from 'path-to-regexp';
 import { HTTPMethod } from 'find-my-way';
 import { Middleware } from 'koa';
+import { Response } from './response';
 
 export interface LoadControllerProps {
   suffix?: string,
@@ -14,6 +15,7 @@ export interface LoadControllerProps {
 }
 
 export * from './controller';
+export * from './response';
 
 export async function LoadControllers(directory: string, app: Instance, options: LoadControllerProps = {}) {
   const suffix = options.suffix ?? 'controller';
@@ -26,14 +28,21 @@ export async function LoadControllers(directory: string, app: Instance, options:
     if (!Array.isArray(controllers)) controllers = [controllers];
     for (let i = 0; i < controllers.length; i++) {
       const controller = controllers[i];
-      const meta = Meta.instance(controller);
-      LoadController(app, meta, path, options);
+      rollbacks.push(
+        LoadController(app, controller, path, options)
+      );
     }
   }
   return rollbacks;
 }
 
-function LoadController(app: Instance, meta: Meta<Controller>, path: string, options: LoadControllerProps = {}) {
+function LoadController(
+  app: Instance,
+  controller: ControllerConstructor,
+  path: string,
+  options: LoadControllerProps = {}
+) {
+  const meta = Meta.instance(controller);
   const suffix = options.defaultPath || '/index';
   path = path.startsWith('/') ? path : '/' + path;
   if (path.endsWith(suffix)) {
@@ -44,20 +53,28 @@ function LoadController(app: Instance, meta: Meta<Controller>, path: string, opt
   const routingPath = options.transformPhysicalPathToRoutingPath
     ? options.transformPhysicalPathToRoutingPath(path)
     : path.replace(/\[([^\]]+)\]/g, ':$1');
-  const _toPath = compile<Record<string, string>>(routingPath, { encode: encodeURIComponent });
-  const _match = match(routingPath, { decode: decodeURIComponent });
   const method = meta.classes.get(Controller.NAMESPACE_METHOD).parameters[0] as HTTPMethod;
   const middlewareAnnotation = meta.classes.get(Controller.NAMESPACE_MIDDLEWARE);
   const middlewares = !!middlewareAnnotation ? middlewareAnnotation.parameters as Middleware[] : [];
+  const _toPath = compile<Record<string, string>>(routingPath, { encode: encodeURIComponent });
+  const _match = match(routingPath, { decode: decodeURIComponent });
+
+  meta.state.set('toPath', _toPath);
+  meta.state.set('toMatch', _match);
+  meta.emit('created', physicalPath, routingPath);
+
   app.on(method, routingPath, ...middlewares, async ctx => {
+    const args = await meta.executeParamters('main', ctx);
     const target = await meta.create();
-    await target.main(ctx);
+    const res = await target.main(...args);
+    if (res instanceof Response) {
+      res.render(ctx);
+    } else {
+      ctx.body = res;
+    }
   })
-  return {
-    physicalPath,
-    routingPath,
-    toPath: _toPath,
-    match: _match,
-    delete: () => app.off(this.method, path),
-  }
+
+  meta.emit('mounted', physicalPath, routingPath);
+
+  return () => app.off(method, routingPath);
 }

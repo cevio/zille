@@ -1,5 +1,5 @@
 {
-  "name": "@zille/http",
+  "name": "@zille/typeorm",
   "version": "2.1.0",
   "description": "somethings",
   "license": "MIT",
@@ -21,8 +21,11 @@
   "dependencies": {
     "@zille/configurator": "workspace:^",
     "@zille/core": "workspace:^",
-    "find-my-way": "^8.1.0",
     "koa": "^2.15.0",
-    "koa-compose": "^4.1.0"
+    "mssql": "^9.1.1",
+    "mysql2": "^3.6.1",
+    "oracledb": "^5.1.0",
+    "pg": "^8.11.3",
+    "typeorm": "^0.3.17"
   }
 }
