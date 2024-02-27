@@ -50,7 +50,11 @@ function LoadController(
     path = path.substring(0, path.length - suffix.length);
   }
   if (!path) path = '/';
-  const physicalPath = options.prefix ? options.prefix + path : path;
+  let physicalPath = options.prefix ? options.prefix + path : path;
+  if (physicalPath.endsWith('/')) {
+    physicalPath = physicalPath.substring(0, physicalPath.length - 1);
+  }
+  if (!physicalPath) physicalPath = '/';
   const routingPath = options.transformPhysicalPathToRoutingPath
     ? options.transformPhysicalPathToRoutingPath(path)
     : path.replace(/\[([^\]]+)\]/g, ':$1');
