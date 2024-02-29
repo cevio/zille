@@ -37,4 +37,13 @@ export class Service {
       self.injects.set(anno.property, target);
     }
   )
+
+  static readonly InjectStore = Annotation.createPropertyDecorator<[any], Meta>(
+    'inject', () => new Meta(),
+    anno => {
+      const self = anno.meta;
+      const name = anno.parameters[0];
+      self.injects.set(anno.property, name);
+    }
+  )
 }
