@@ -193,9 +193,6 @@ importers:
       '@zille/core':
         specifier: workspace:^
         version: link:../core
-      koa:
-        specifier: ^2.15.0
-        version: 2.15.0
       mssql:
         specifier: ^9.1.1
         version: 9.3.2
@@ -212,9 +209,6 @@ importers:
         specifier: ^0.3.17
         version: 0.3.20(mssql@9.3.2)(mysql2@3.9.2)(oracledb@5.5.0)(pg@8.11.3)(ts-node@10.9.2)
     devDependencies:
-      '@types/koa':
-        specifier: ^2.15.0
-        version: 2.15.0
       fix-esm-import-path:
         specifier: ^1.4.0
         version: 1.5.0
