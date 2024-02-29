@@ -2,8 +2,6 @@ import { Component } from '@zille/core';
 import { Configurator } from '@zille/configurator';
 import { DataSource, DataSourceOptions, QueryRunner } from 'typeorm';
 
-export * from './koa';
-
 @Component.Injectable()
 export class TypeORM extends Component {
   static readonly namespace = Symbol('TYPEORM');

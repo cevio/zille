@@ -43,6 +43,10 @@ export class Http extends Component {
       // @ts-ignore
       defaultRoute: async (ctx: Context, next: Next) => await next(),
     })
+    koa.use(async (ctx, next) => {
+      ctx.state['SERVICE:STORE'] = new Map();
+      await next();
+    })
     koa.use(this.middlewares.compose('prefix'));
     koa.use(app.routes());
     koa.use(this.middlewares.compose('suffix'));

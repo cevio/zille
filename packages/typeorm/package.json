@@ -15,13 +15,11 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/koa": "^2.15.0",
     "fix-esm-import-path": "^1.4.0"
   },
   "dependencies": {
     "@zille/configurator": "workspace:^",
     "@zille/core": "workspace:^",
-    "koa": "^2.15.0",
     "mssql": "^9.1.1",
     "mysql2": "^3.6.1",
     "oracledb": "^5.1.0",

@@ -22,6 +22,7 @@ export abstract class Controller<PARAMS extends string = string, QUERY extends s
   static readonly Querys = Controller.Context(ctx => ctx.query);
   static readonly Headers = Controller.Context(ctx => ctx.headers);
   static readonly Body = Controller.Context(ctx => ctx.request.body);
+  static readonly Store = Controller.Context(ctx => ctx.state['SERVICE:STORE']);
 
   static readonly Param = Annotation.createParameterDecorator<[string, ...Function[]], Meta, Context>(
     () => new Meta(),

@@ -1,7 +1,7 @@
 import { glob } from 'glob';
 import { resolve } from 'node:path';
 import { Controller, ControllerConstructor } from './controller';
-import { Meta } from '@zille/service';
+import { Meta, container } from '@zille/service';
 import { Instance } from '@zille/http';
 import { compile, match } from 'path-to-regexp';
 import { HTTPMethod } from 'find-my-way';
@@ -69,8 +69,14 @@ function LoadController(
   meta.emit('created', physicalPath, routingPath);
 
   app.on(method, routingPath, ...middlewares, async ctx => {
+    const store = ctx.state['SERVICE:STORE'] as Map<any, any>;
+    for (const [key, value] of container.entries()) {
+      if (!store.has(key)) {
+        store.set(key, value);
+      }
+    }
     const args = await meta.executeParamters('main', ctx);
-    const target = await meta.create();
+    const target = await meta.create(store);
     const res = await target.main(...args);
     if (res instanceof Response) {
       res.render(ctx);

@@ -31,19 +31,10 @@ export class Service {
           : null;
 
       if (!target) {
-        throw new TypeError('错误的依赖');
+        throw new TypeError('Unspecified dependency injection');
       }
 
       self.injects.set(anno.property, target);
-    }
-  )
-
-  static readonly Store = Annotation.createPropertyDecorator<[any], Meta>(
-    'inject', () => new Meta(),
-    anno => {
-      const self = anno.meta;
-      const clazz = anno.parameters[0];
-      self.injects.set(anno.property, clazz);
     }
   )
 }
