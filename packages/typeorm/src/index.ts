@@ -21,6 +21,18 @@ export class TypeORM extends Component {
     this.connection = connection;
   }
 
+  /**
+   * 事物处理
+   * @param callback 
+   * @returns 
+   */
+  public transaction<T>(callback: (
+    runner: QueryRunner,
+    rollback: (roll: () => unknown | Promise<unknown>) => number
+  ) => Promise<T>) {
+    return useTransaction(this.connection, callback);
+  }
+
   public async terminate() {
     await this.connection.destroy();
   }
