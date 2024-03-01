@@ -128,7 +128,7 @@ export class Annotation extends EventEmitter {
         let annotation: PropertyAnnotation<P, M>;
 
         if (meta.properties.has(property)) {
-          annotations = meta.properties.get(namespace) as IAnnotions;
+          annotations = meta.properties.get(property) as IAnnotions;
         } else {
           annotations = new Map();
           meta.properties.set(property, annotations);
