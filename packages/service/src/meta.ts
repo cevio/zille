@@ -14,8 +14,8 @@ export class Meta<T extends Service = Service> extends Annotation {
   }
 
   public async create(store?: Map<any, any>) {
-    const target = new this.creator(this);
     if (!store) store = new Map();
+    const target = new this.creator(this, store);
     for (const [key, instance] of this.injects.entries()) {
       if (store.has(instance)) {
         // @ts-ignore
