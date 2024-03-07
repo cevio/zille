@@ -29,7 +29,7 @@ export abstract class Controller<PARAMS extends string = string, QUERY extends s
   static readonly Query = createParameterDecorator<Context, [string, ...Function[]]>((ctx, key, ...fns) => AsyncReduce(ctx.query[key], fns));
   static readonly Header = createParameterDecorator<Context, [string, ...Function[]]>((ctx, key, ...fns) => AsyncReduce(ctx.headers[key], fns));
 
-  public toPath<P extends string, C extends Controller<P>>(clazz: Newable<C>, data?: Record<P, string>) {
+  public $toPath<P extends string, C extends Controller<P>>(clazz: Newable<C>, data?: Record<P, string>) {
     const toPath = hook.getPath(clazz) as PathFunction<Partial<Record<P, string>>>;
     if (typeof toPath !== 'function') {
       throw new Error('The controller has not been initialized and there is no toPath method.');
@@ -37,7 +37,7 @@ export abstract class Controller<PARAMS extends string = string, QUERY extends s
     return toPath(data || {});
   }
 
-  public toMatch<P extends string, C extends Controller<P>>(clazz: Newable<C>, path: string) {
+  public $toMatch<P extends string, C extends Controller<P>>(clazz: Newable<C>, path: string) {
     const toMatch = hook.getMatch(clazz) as MatchFunction<Partial<Record<P, string>>>;
     if (typeof toMatch !== 'function') {
       throw new Error('The controller has not been initialized and there is no toMatch method.');
@@ -45,11 +45,11 @@ export abstract class Controller<PARAMS extends string = string, QUERY extends s
     return toMatch(path);
   }
 
-  public toHref<P extends string, Q extends string, C extends Controller<P, Q>>(
+  public $toHref<P extends string, Q extends string, C extends Controller<P, Q>>(
     clazz: Newable<C>,
     params?: Record<P, string>, query?: Record<Q, string>
   ) {
-    const p = this.toPath(clazz, params);
+    const p = this.$toPath(clazz, params);
     const q = stringify(query || {});
     if (q) return p + '?' + q;
     return p;
