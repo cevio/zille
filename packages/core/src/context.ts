@@ -3,13 +3,22 @@ import { NS_INJECTABLE, container } from './utils';
 import { EventEmitter } from 'node:events';
 
 export class Context extends EventEmitter {
-  public readonly cache = new Map<Function, any>();
+  public readonly cache = new Map<Function | string | symbol, any>();
   public readonly dependencies = new Map<Function, Set<Function>>();
   public readonly rollbacks = new Map<Function, () => unknown>();
 
   constructor() {
     super();
     this.setMaxListeners(+Infinity);
+  }
+
+  public addCache(key: any, value: any) {
+    this.cache.set(key, value);
+    return this
+  }
+
+  public getCache<T = any>(key: any): T {
+    return this.cache.get(key);
   }
 
   public addDependency(source: Function, target: Function) {
@@ -33,32 +42,34 @@ export class Context extends EventEmitter {
     return this;
   }
 
-  public async connect<T>(clazz: { new(...args: any[]): T }): Promise<T> {
+  public async connect<T>(clazz: { new(...args: any[]): T } | string | symbol): Promise<T> {
     if (this.cache.has(clazz)) {
       return this.cache.get(clazz);
     }
 
-    if (!Reflect.hasMetadata(NS_INJECTABLE, clazz)) {
-      throw new Error('Missing Injectable decorator')
-    }
-
-    const object = new clazz(this);
-    const callback = Reflect.getMetadata(NS_INJECTABLE, clazz);
-
-    // save it
-    this.cache.set(clazz, object);
-    this.emit('cache', object, clazz);
-
-    await this.load(clazz, object);
-    if (typeof callback === 'function') {
-      const rollback = await Promise.resolve(callback(object, this, clazz));
-      if (typeof rollback === 'function') {
-        // this.rollbacks.set(clazz, rollback);
-        this.emit('rollback', object, clazz, rollback);
+    if (typeof clazz === 'function') {
+      if (!Reflect.hasMetadata(NS_INJECTABLE, clazz)) {
+        throw new Error('Missing Injectable decorator')
       }
-    }
 
-    return object;
+      const object = new clazz(this);
+      const callback = Reflect.getMetadata(NS_INJECTABLE, clazz);
+
+      // save it
+      this.cache.set(clazz, object);
+      this.emit('cache', object, clazz);
+
+      await this.load(clazz, object);
+      if (typeof callback === 'function') {
+        const rollback = await Promise.resolve(callback(object, this, clazz));
+        if (typeof rollback === 'function') {
+          // this.rollbacks.set(clazz, rollback);
+          this.emit('rollback', object, clazz, rollback);
+        }
+      }
+
+      return object;
+    }
   }
 
   private async load(clazz: Function, object: any) {

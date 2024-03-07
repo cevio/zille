@@ -3,7 +3,7 @@ import { container, NS_INJECTABLE } from './utils';
 
 export * from './context';
 
-export function Inject(dep: Function): PropertyDecorator {
+export function Inject(dep: Function | string | symbol): PropertyDecorator {
   return (target, property) => {
     if (Reflect.hasMetadata(property, target)) {
       throw new Error('Dependencies cannot be defined repeatedly');
