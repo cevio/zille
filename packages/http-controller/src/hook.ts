@@ -1,11 +1,12 @@
 import { MatchFunction, PathFunction } from "path-to-regexp";
+import { IControllerLoadingMeta } from "./types";
 
 export class Hook {
   private readonly stacks = new Map<Function, {
     toPath: PathFunction<object>,
     toMatch: MatchFunction<object>,
-    created: Set<(physicalPath: string, routingPath: string) => unknown>,
-    mounted: Set<(physicalPath: string, routingPath: string) => unknown>,
+    created: Set<(options: IControllerLoadingMeta) => unknown>,
+    mounted: Set<(options: IControllerLoadingMeta) => unknown>,
   }>();
 
   public add(clazz: Function) {
@@ -42,33 +43,33 @@ export class Hook {
     return target.toMatch;
   }
 
-  public onCreate(clazz: Function, fn: (physicalPath: string, routingPath: string) => unknown) {
+  public onCreate(clazz: Function, fn: (options: IControllerLoadingMeta) => unknown) {
     const target = this.add(clazz);
     target.created.add(fn);
     return this;
   }
 
-  public onMount(clazz: Function, fn: (physicalPath: string, routingPath: string) => unknown) {
+  public onMount(clazz: Function, fn: (options: IControllerLoadingMeta) => unknown) {
     const target = this.add(clazz);
     target.mounted.add(fn);
     return this;
   }
 
-  public created(clazz: Function, physicalPath: string, routingPath: string) {
+  public created(clazz: Function, options: IControllerLoadingMeta) {
     if (this.stacks.has(clazz)) {
       const events = this.stacks.get(clazz).created;
       for (const fn of events.values()) {
-        fn(physicalPath, routingPath);
+        fn(options);
       }
     }
     return this;
   }
 
-  public mounted(clazz: Function, physicalPath: string, routingPath: string) {
+  public mounted(clazz: Function, options: IControllerLoadingMeta) {
     if (this.stacks.has(clazz)) {
       const events = this.stacks.get(clazz).mounted;
       for (const fn of events.values()) {
-        fn(physicalPath, routingPath);
+        fn(options);
       }
     }
     return this;

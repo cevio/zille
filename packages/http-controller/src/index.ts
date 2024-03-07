@@ -6,7 +6,7 @@ import { compile, match } from 'path-to-regexp';
 import { HTTPMethod } from 'find-my-way';
 import { Middleware } from 'koa';
 import { Response } from './response';
-import { Newable, hook } from './types';
+import { IControllerLoadingMeta, Newable, hook } from './types';
 import { executeParameters, getClassDecorator } from './decorator';
 
 export interface LoadControllerProps {
@@ -65,9 +65,16 @@ function LoadController(
   const methods = getClassDecorator(Controller.NAMESPACE_METHOD, controller) as HTTPMethod[];
   const middlewares = getClassDecorator(Controller.NAMESPACE_MIDDLEWARE, controller) as Middleware[];
 
+  const meta: IControllerLoadingMeta = {
+    methods,
+    middlewares,
+    physicalPath,
+    routingPath,
+  }
+
   hook.addPath(controller, compile<Record<string, string>>(routingPath, { encode: encodeURIComponent }));
   hook.addMatch(controller, match(routingPath, { decode: decodeURIComponent }));
-  hook.created(controller, physicalPath, routingPath);
+  hook.created(controller, meta);
 
   app.on(methods, routingPath, ...middlewares, async ctx => {
     const store = ctx.__SERVICE_STORAGE__;
@@ -81,7 +88,7 @@ function LoadController(
     }
   })
 
-  hook.mounted(controller, physicalPath, routingPath);
+  hook.mounted(controller, meta);
 
   return () => app.off(methods, routingPath);
 }
