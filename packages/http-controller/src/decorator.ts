@@ -31,7 +31,7 @@ export function createParameterDecorator<T = any, P extends any[] = []>(callback
 }
 
 export async function executeParameters<T>(ctx: T, target: Object, property: string | symbol) {
-  if (!Reflect.hasMetadata(property, target)) throw new Error('No decorator is written to the `property` on `target`');
+  if (!Reflect.hasMetadata(property, target)) return [];
   const current: { parameters: any[], callback: (ctx: T, ...args: any[]) => unknown }[] = Reflect.getMetadata(property, target);
   const res: any[] = [];
   for (let i = 0; i < current.length; i++) {
