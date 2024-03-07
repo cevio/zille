@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-export function createClassDecorator<P extends any[] = []>(name: string | symbol) {
+export function createClassDecorator<P extends any[] = []>(name: string | symbol, callback?: (target: Function, ...args: P) => unknown) {
   return (...args: P): ClassDecorator => {
     return target => {
       if (!Reflect.hasMetadata(name, target)) {
@@ -8,6 +8,9 @@ export function createClassDecorator<P extends any[] = []>(name: string | symbol
       }
       const current: P = Reflect.getMetadata(name, target);
       current.unshift(...args);
+      if (typeof callback === 'function') {
+        callback(target, ...current);
+      }
     }
   }
 }
