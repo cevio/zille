@@ -18,10 +18,12 @@
     "fix-esm-import-path": "^1.4.0"
   },
   "dependencies": {
+    "@zille/application": "workspace:^",
     "@zille/configurator": "workspace:^",
     "@zille/core": "workspace:^",
     "@zille/http": "workspace:^",
     "@zille/http-controller": "workspace:^",
-    "@zille/service": "workspace:^"
+    "@zille/service": "workspace:^",
+    "reflect-metadata": "^0.2.1"
   }
 }

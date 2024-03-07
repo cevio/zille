@@ -1,18 +1,18 @@
-import { Component } from '@zille/core';
+import { Application } from '@zille/application';
 import { Configurator } from '@zille/configurator';
 
 import ioRedis, { type RedisOptions } from 'ioredis';
 
-@Component.Injectable()
-export class IORedis extends Component {
+@Application.Injectable()
+export class IORedis extends Application {
   static readonly namespace = Symbol('IOREDIS');
 
   public connection: ioRedis;
 
-  @Component.Inject(Configurator)
+  @Application.Inject(Configurator)
   private readonly configure: Configurator;
 
-  public async initialize() {
+  public async setup() {
     if (!this.configure.has(IORedis.namespace)) {
       throw new Error('Missing configuration parameters for IORedis service startup');
     }
@@ -27,9 +27,11 @@ export class IORedis extends Component {
       })
     });
     this.connection = connection;
+    return () => this.terminate();
   }
 
   public terminate() {
     this.connection.disconnect();
+    this.connection = undefined;
   }
 }

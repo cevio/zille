@@ -1,61 +1,58 @@
 import {
-  create,
-  destroy,
-  Component,
-} from '@zille/core';
+  Application,
+  container,
+} from '@zille/application';
 
-@Component.Injectable()
-class A extends Component {
+@Application.Injectable()
+class A extends Application {
   public value = 1;
-  public initialize(): void {
+  public setup() {
     this.value++;
     console.log('+', 'A initialized');
-  }
-  public terminate(): void {
-    console.log('-', 'A terminated');
+    return () => console.log('-', 'A terminated');
   }
 }
 
-@Component.Injectable()
-class C extends Component {
+@Application.Injectable()
+class C extends Application {
   public value = 1;
-  public initialize(): void {
+  public setup() {
     this.value++;
     console.log('+', 'C initialized');
-    this.setState('val', 1243);
-  }
-  public terminate(): void {
-    console.log('-', 'C terminated');
+    return () => console.log('-', 'C terminated');
   }
 }
 
-@Component.Injectable()
-class B extends Component {
-  @Component.Inject(A)
+@Application.Injectable()
+class B extends Application {
+  @Application.Inject(A)
   private readonly a: A;
   private b = 2
   public value = 1;
-  public async initialize() {
-    const c = await this.use(C);
+  public async setup() {
+    const c = await this.$use(C);
     this.value += (this.a.value + this.b + c.value + Date.now());
     console.log('+', 'B initialized');
-    console.log('c.state', c.getState<number>('val'));
-  }
-  public async terminate() {
-    console.log('-', 'B terminated');
+    return () => console.log('-', 'B terminated');
   }
 }
 
 (async () => {
-  let b = await create(B);
+  let b = await container.connect(B);
   console.log('b.value', b.value)
-  const a = await create(A);
-  const c = await create(C);
+  const a = await container.connect(A);
+  const c = await container.connect(C);
   console.log('a.value', a.value);
   console.log('c.value', c.value);
-  await destroy(b);
-  b = await create(B);
+  console.log(container)
+  await container.destroy(B);
+  console.log('-----------------')
+  console.log(container)
+  await new Promise(resolve => {
+    setTimeout(resolve, 3000)
+  })
+  b = await container.connect(B);
   console.log('b.value', b.value);
-  await destroy(b);
+  await container.destroy(B);
   console.log('done');
 })();

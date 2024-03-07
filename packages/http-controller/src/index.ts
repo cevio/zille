@@ -1,12 +1,13 @@
 import { glob } from 'glob';
 import { resolve } from 'node:path';
-import { Controller, ControllerConstructor } from './controller';
-import { Meta, container } from '@zille/service';
+import { Controller } from './controller';
 import { Instance } from '@zille/http';
 import { compile, match } from 'path-to-regexp';
 import { HTTPMethod } from 'find-my-way';
 import { Middleware } from 'koa';
 import { Response } from './response';
+import { Newable, hook } from './types';
+import { executeParameters, getClassDecorator } from './decorator';
 
 export interface LoadControllerProps {
   prefix?: string,
@@ -17,6 +18,9 @@ export interface LoadControllerProps {
 
 export * from './controller';
 export * from './response';
+export * from './decorator';
+export * from './hook';
+export * from './types';
 
 export async function LoadControllers(directory: string, app: Instance, options: LoadControllerProps = {}) {
   const suffix = options.suffix ?? 'controller';
@@ -25,7 +29,7 @@ export async function LoadControllers(directory: string, app: Instance, options:
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const path = file.substring(0, file.length - (4 + suffix.length));
-    let controllers = (await import(resolve(directory, file))).default as ControllerConstructor | ControllerConstructor[];
+    let controllers = (await import(resolve(directory, file))).default as Newable | Newable[];
     if (!Array.isArray(controllers)) controllers = [controllers];
     for (let i = 0; i < controllers.length; i++) {
       const controller = controllers[i];
@@ -39,11 +43,10 @@ export async function LoadControllers(directory: string, app: Instance, options:
 
 function LoadController(
   app: Instance,
-  controller: ControllerConstructor,
+  controller: Newable,
   path: string,
   options: LoadControllerProps = {}
 ) {
-  const meta = Meta.instance(controller);
   const suffix = options.defaultPath || '/index';
   path = path.startsWith('/') ? path : '/' + path;
   if (path.endsWith(suffix)) {
@@ -58,25 +61,18 @@ function LoadController(
   const routingPath = options.transformPhysicalPathToRoutingPath
     ? options.transformPhysicalPathToRoutingPath(path)
     : path.replace(/\[([^\]]+)\]/g, ':$1');
-  const method = meta.classes.get(Controller.NAMESPACE_METHOD).parameters[0] as HTTPMethod;
-  const middlewareAnnotation = meta.classes.get(Controller.NAMESPACE_MIDDLEWARE);
-  const middlewares = !!middlewareAnnotation ? middlewareAnnotation.parameters as Middleware[] : [];
-  const _toPath = compile<Record<string, string>>(routingPath, { encode: encodeURIComponent });
-  const _match = match(routingPath, { decode: decodeURIComponent });
 
-  meta.state.set('toPath', _toPath);
-  meta.state.set('toMatch', _match);
-  meta.emit('created', physicalPath, routingPath);
+  const methods = getClassDecorator(Controller.NAMESPACE_METHOD, controller) as HTTPMethod[];
+  const middlewares = getClassDecorator(Controller.NAMESPACE_MIDDLEWARE, controller) as Middleware[];
 
-  app.on(method, routingPath, ...middlewares, async ctx => {
-    const store = ctx.state['SERVICE:STORE'] as Map<any, any>;
-    for (const [key, value] of container.entries()) {
-      if (!store.has(key)) {
-        store.set(key, value);
-      }
-    }
-    const args = await meta.executeParamters('main', ctx);
-    const target = await meta.create(store);
+  hook.addPath(controller, compile<Record<string, string>>(routingPath, { encode: encodeURIComponent }));
+  hook.addMatch(controller, match(routingPath, { decode: decodeURIComponent }));
+  hook.created(controller, physicalPath, routingPath);
+
+  app.on(methods, routingPath, ...middlewares, async ctx => {
+    const store = ctx.__SERVICE_STORAGE__;
+    const target = await store.connect(controller);
+    const args = await executeParameters(ctx, target, 'main');
     const res = await target.main(...args);
     if (res instanceof Response) {
       res.render(ctx);
@@ -85,7 +81,7 @@ function LoadController(
     }
   })
 
-  meta.emit('mounted', physicalPath, routingPath);
+  hook.mounted(controller, physicalPath, routingPath);
 
-  return () => app.off(method, routingPath);
+  return () => app.off(methods, routingPath);
 }

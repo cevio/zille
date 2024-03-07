@@ -1,18 +1,29 @@
-import { Meta } from './meta';
-import { Service, ServiceConstructor } from './service';
-
-export * from './meta';
+import { container, Application } from '@zille/application';
+import { Context } from '@zille/core';
+import { Service } from './service';
 export * from './service';
 
-export const container = new Map();
-export function getService<T extends Service>(clazz: ServiceConstructor<T>, store?: Map<any, any>) {
-  const meta = Meta.instance(clazz);
-  if (store) {
-    for (const [key, value] of container.entries()) {
-      if (!store.has(key)) {
-        store.set(key, value);
-      }
-    }
+export function createContext() {
+  const ctx = new Context();
+  for (const [key, value] of container.cache.entries()) {
+    ctx.cache.set(key, value);
   }
-  return meta.create(store);
+  ctx.on('cache', (object: any, clazz: Function) => {
+    if (object instanceof Application) {
+      container.cache.set(clazz, object);
+    }
+  })
+  ctx.on('rollback', (object: any, clazz: Function, rollback: any) => {
+    if (object instanceof Application) {
+      container.rollbacks.set(clazz, rollback);
+    }
+  })
+  ctx.on('dependency', (object: any, clazz: Function, obj: any, dep: Function) => {
+    if (object instanceof Application && obj instanceof Application) {
+      container.addDependency(clazz, dep);
+    } else if (obj instanceof Service && object instanceof Service) {
+      ctx.addDependency(clazz, dep);
+    }
+  })
+  return ctx;
 }

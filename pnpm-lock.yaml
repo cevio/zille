@@ -46,11 +46,21 @@ importers:
         specifier: ^1.4.0
         version: 1.5.0
 
-  packages/configurator:
+  packages/application:
     dependencies:
       '@zille/core':
         specifier: workspace:^
         version: link:../core
+    devDependencies:
+      fix-esm-import-path:
+        specifier: ^1.4.0
+        version: 1.5.0
+
+  packages/configurator:
+    dependencies:
+      '@zille/application':
+        specifier: workspace:^
+        version: link:../application
     devDependencies:
       fix-esm-import-path:
         specifier: ^1.4.0
@@ -58,9 +68,9 @@ importers:
 
   packages/core:
     dependencies:
-      '@zille/annotation':
-        specifier: workspace:^
-        version: link:../annotation
+      reflect-metadata:
+        specifier: ^0.2.1
+        version: 0.2.1
     devDependencies:
       fix-esm-import-path:
         specifier: ^1.4.0
@@ -68,12 +78,15 @@ importers:
 
   packages/http:
     dependencies:
+      '@zille/application':
+        specifier: workspace:^
+        version: link:../application
       '@zille/configurator':
         specifier: workspace:^
         version: link:../configurator
-      '@zille/core':
+      '@zille/service':
         specifier: workspace:^
-        version: link:../core
+        version: link:../service
       find-my-way:
         specifier: ^8.1.0
         version: 8.1.0
@@ -136,12 +149,12 @@ importers:
 
   packages/ioredis:
     dependencies:
+      '@zille/application':
+        specifier: workspace:^
+        version: link:../application
       '@zille/configurator':
         specifier: workspace:^
         version: link:../configurator
-      '@zille/core':
-        specifier: workspace:^
-        version: link:../core
       ioredis:
         specifier: ^5.3.2
         version: 5.3.2
@@ -152,9 +165,9 @@ importers:
 
   packages/service:
     dependencies:
-      '@zille/annotation':
+      '@zille/application':
         specifier: workspace:^
-        version: link:../annotation
+        version: link:../application
       '@zille/core':
         specifier: workspace:^
         version: link:../core
@@ -165,6 +178,9 @@ importers:
 
   packages/test:
     dependencies:
+      '@zille/application':
+        specifier: workspace:^
+        version: link:../application
       '@zille/configurator':
         specifier: workspace:^
         version: link:../configurator
@@ -180,6 +196,9 @@ importers:
       '@zille/service':
         specifier: workspace:^
         version: link:../service
+      reflect-metadata:
+        specifier: ^0.2.1
+        version: 0.2.1
     devDependencies:
       fix-esm-import-path:
         specifier: ^1.4.0
@@ -187,12 +206,12 @@ importers:
 
   packages/typeorm:
     dependencies:
+      '@zille/application':
+        specifier: workspace:^
+        version: link:../application
       '@zille/configurator':
         specifier: workspace:^
         version: link:../configurator
-      '@zille/core':
-        specifier: workspace:^
-        version: link:../core
       mssql:
         specifier: ^9.1.1
         version: 9.3.2

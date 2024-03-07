@@ -1,11 +1,10 @@
-import { Component } from '@zille/core';
+import { Application } from '@zille/application';
 
-@Component.Injectable()
-export class Configurator extends Component {
+@Application.Injectable()
+export class Configurator extends Application {
   private readonly state = new Map<string | symbol, any>();
 
-  public initialize() { }
-  public terminate() { }
+  public setup() { }
 
   public set(key: string | symbol, value: any) {
     this.state.set(key, value);

@@ -1,16 +1,15 @@
 import compose from 'koa-compose';
 import { Middleware } from 'koa';
 import { Server } from 'node:http';
-import { Component } from "@zille/core";
+import { Application } from "@zille/application";
 
-@Component.Injectable()
-export class HttpMiddlewares extends Component {
+@Application.Injectable()
+export class HttpMiddlewares extends Application {
   private readonly prefixs = new Set<Middleware>();
   private readonly suffixs = new Set<Middleware>();
   private readonly servers = new Set<(s: Server) => (unknown | Promise<unknown>)>();
 
-  public initialize() { }
-  public terminate() { }
+  public setup() { }
 
   public add(type: 'prefix' | 'suffix', ...middlewares: Middleware[]) {
     const target = type === 'prefix' ? this.prefixs : this.suffixs;

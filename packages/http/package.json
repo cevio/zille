@@ -19,8 +19,9 @@
     "fix-esm-import-path": "^1.4.0"
   },
   "dependencies": {
+    "@zille/application": "workspace:^",
     "@zille/configurator": "workspace:^",
-    "@zille/core": "workspace:^",
+    "@zille/service": "workspace:^",
     "find-my-way": "^8.1.0",
     "koa": "^2.15.0",
     "koa-compose": "^4.1.0"

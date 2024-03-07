@@ -1,26 +1,22 @@
-import { Component, ComponentConstructor } from "./component";
-import { Meta } from "./meta";
+import 'reflect-metadata';
+import { container, NS_INJECTABLE } from './utils';
 
-export * from './component';
-export * from './meta';
+export * from './context';
 
-export function getMeta<T extends Component>(clazz: ComponentConstructor<T>) {
-  return Meta.instance(clazz)
+export function Inject(dep: Function): PropertyDecorator {
+  return (target, property) => {
+    if (Reflect.hasMetadata(property, target)) {
+      throw new Error('Dependencies cannot be defined repeatedly');
+    }
+    const fn = target.constructor;
+    if (!container.has(fn)) container.set(fn, new Set());
+    container.get(fn).add(property);
+    Reflect.defineMetadata(property, dep, target);
+  }
 }
 
-export async function create<T extends Component>(clazz: ComponentConstructor<T>) {
-  const instance = getMeta(clazz);
-  await instance.setup();
-  return instance.context;
-}
-
-export async function destroy<T extends Component>(target: T) {
-  const instance = target.meta;
-  await Promise.all(Array.from(instance.dependencies.values()).map(meta => meta.destroy()));
-  await instance.destroy();
-}
-
-export function destroyClass<T extends Component>(clazz: ComponentConstructor<T>) {
-  const instance = getMeta(clazz);
-  return destroy(instance.context);
+export function Injectable(callback?: Function): ClassDecorator {
+  return target => {
+    Reflect.defineMetadata(NS_INJECTABLE, callback, target);
+  }
 }

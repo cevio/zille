@@ -1,30 +1,26 @@
-import { Component } from '@zille/core';
-import { Service, Meta } from '@zille/service';
+import { Application, container } from '@zille/application';
+import { Service, createContext } from '@zille/service';
 
-@Component.Injectable()
-class A extends Component {
+@Application.Injectable()
+class A extends Application {
   public value = 1;
-  public initialize(): void {
+  public setup() {
     this.value++;
     console.log('+', 'A initialized');
-  }
-  public terminate(): void {
-    console.log('-', 'A terminated');
+    return () => console.log('-', 'A terminated');
   }
 }
 
-@Component.Injectable()
-class B extends Component {
-  @Component.Inject(A)
+@Application.Injectable()
+class B extends Application {
+  @Application.Inject(A)
   private readonly a: A;
 
   public value = 1;
-  public initialize(): void {
+  public setup() {
     this.value += this.a.value;
     console.log('+', 'B initialized');
-  }
-  public terminate(): void {
-    console.log('-', 'B terminated');
+    return () => console.log('-', 'B terminated');
   }
 }
 
@@ -52,14 +48,21 @@ class BS extends Service {
 }
 
 (async () => {
-  const meta = Meta.instance(BS);
-  const target = await meta.create();
+  const ctx = createContext();
+  console.log('初始context', ctx);
+  console.log('初始container', container);
+  const target = await ctx.connect(BS);
   const value = target.sum(5, 6);
-  console.log('value', value);
+  console.log('第一次context', ctx);
+  console.log('第一次container', container);
   {
-    const meta = Meta.instance(BS);
-    const target = await meta.create();
+    const ctx = createContext();
+    console.log('第二次初始context', ctx);
+    console.log('第二次初始container', container);
+    const target = await ctx.connect(BS);
     const value = target.sum(5, 6);
+    console.log('第二次context', ctx);
+    console.log('第二次container', container);
     console.log('value', value);
   }
   console.log('done')
