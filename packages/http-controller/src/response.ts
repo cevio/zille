@@ -31,6 +31,16 @@ export class Response {
     return this;
   }
 
+  public setType(type: string) {
+    this.type = type;
+    return this;
+  }
+
+  public setData(data: any) {
+    this.data = data;
+    return this;
+  }
+
   public render(ctx: Context) {
     ctx.status = this.status;
     if (this.headers.size) {
