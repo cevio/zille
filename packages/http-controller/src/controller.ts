@@ -23,7 +23,7 @@ export abstract class Controller<PARAMS extends string = string, QUERY extends s
   static readonly Headers = Controller.Context(ctx => ctx.headers);
   static readonly Body = Controller.Context(ctx => ctx.request.body);
   static readonly Files = Controller.Context(ctx => ctx.request.files);
-  static readonly Store = Controller.Context(ctx => ctx.state['SERVICE:STORE']);
+  static readonly Store = Controller.Context(ctx => ctx.__SERVICE_STORAGE__);
 
   static readonly Param = createParameterDecorator<Context, [string, ...Function[]]>((ctx, key, ...fns) => AsyncReduce(ctx.params[key], fns));
   static readonly Query = createParameterDecorator<Context, [string, ...Function[]]>((ctx, key, ...fns) => AsyncReduce(ctx.query[key], fns));
