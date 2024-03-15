@@ -59,8 +59,8 @@ function LoadController(
   }
   if (!physicalPath) physicalPath = '/';
   const routingPath = options.transformPhysicalPathToRoutingPath
-    ? options.transformPhysicalPathToRoutingPath(path)
-    : path.replace(/\[([^\]]+)\]/g, ':$1');
+    ? options.transformPhysicalPathToRoutingPath(physicalPath)
+    : physicalPath.replace(/\[([^\]]+)\]/g, ':$1');
 
   const methods = getClassDecorator(Controller.NAMESPACE_METHOD, controller) as HTTPMethod[];
   const middlewares = getClassDecorator(Controller.NAMESPACE_MIDDLEWARE, controller) as Middleware[];
