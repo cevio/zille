@@ -76,8 +76,9 @@ function LoadController(
   hook.addMatch(controller, match(routingPath, { decode: decodeURIComponent }));
   hook.created(controller, meta);
 
-  app.on(methods, routingPath, ...middlewares, async ctx => {
+  app.on(methods, routingPath, ...middlewares, async (ctx, next) => {
     const store = ctx.__SERVICE_STORAGE__;
+    ctx.next = next;
     const target = await store.connect(controller);
     const args = await executeParameters(ctx, target, 'main');
     const res = await target.main(...args);
