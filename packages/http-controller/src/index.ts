@@ -84,7 +84,7 @@ function LoadController(
     const res = await target.main(...args);
     if (res instanceof Response) {
       res.render(ctx);
-    } else {
+    } else if (res !== undefined) {
       ctx.body = res;
     }
   })
