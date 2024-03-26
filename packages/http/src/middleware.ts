@@ -19,6 +19,17 @@ export class HttpMiddlewares extends Application {
     return this;
   }
 
+  public del(type: 'prefix' | 'suffix', ...middlewares: Middleware[]) {
+    const target = type === 'prefix' ? this.prefixs : this.suffixs;
+    for (let i = 0; i < middlewares.length; i++) {
+      const middleware = middlewares[i];
+      if (target.has(middleware)) {
+        target.delete(middleware);
+      }
+    }
+    return this;
+  }
+
   public compose(type: 'prefix' | 'suffix'): Middleware {
     const target = type === 'prefix' ? this.prefixs : this.suffixs;
     return async (ctx, next) => {
