@@ -10,7 +10,7 @@ import { createClassDecorator, createParameterDecorator } from './decorator';
 import { Newable, hook } from './types';
 
 export abstract class Controller<PARAMS extends string = string, QUERY extends string = string> extends Service {
-  public abstract main(...args: any[]): Promise<Response>;
+  public abstract main(...args: any[]): Promise<Response | void>;
   static readonly NAMESPACE_METHOD = Symbol('http:method');
   static readonly NAMESPACE_MIDDLEWARE = Symbol('http:middlewares');
   static readonly Middleware = createClassDecorator<Middleware[]>(Controller.NAMESPACE_MIDDLEWARE);
