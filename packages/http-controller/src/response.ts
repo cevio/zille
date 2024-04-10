@@ -1,15 +1,20 @@
 import { Context } from "koa";
 import { Stream } from "node:stream";
 import { SetOption } from 'cookies';
+import { EventEmitter } from 'node:events';
+import { clearInterval } from "node:timers";
 
-export class Response {
+export class Response extends EventEmitter {
   public redirect_url: string;
   public type: string;
   public data: any;
   public readonly headers = new Map<string, string | number | boolean>();
   public readonly cookies = new Map<string, [string | number | boolean, SetOption]>();
 
-  constructor(public status = 200) { }
+  constructor(public status = 200) {
+    super();
+    this.setMaxListeners(+Infinity);
+  }
 
   public setStatus(i: number) {
     this.status = i;
@@ -64,7 +69,14 @@ export class Response {
     if (this.data !== undefined) {
       ctx.body = this.data;
     }
+    this.emit('render', ctx);
     return this;
+  }
+
+  static redirect(url: string, status?: number) {
+    const res = new Response(status || 301);
+    res.redirect(url);
+    return res;
   }
 
   static html(data: string) {
@@ -98,4 +110,49 @@ export class Response {
     res.data = null;
     return res;
   }
+
+  static empty(status?: number) {
+    const res = new Response(status);
+    res.data = undefined;
+    return res;
+  }
+
+  /**
+   * SSE响应
+   * 事件：
+   * 1. sse: (event: string, data: any) => void 发送数据
+   * 2. close: () => void 关闭链接
+   * @param status 
+   * @returns 
+   */
+  static sse(status?: number) {
+    const res = new Response(status);
+    let close = false;
+    res.set('Content-Type', 'text/event-stream');
+    res.set('Cache-Control', 'no-cache');
+    res.set('Connection', 'keep-alive');
+    res.data = undefined;
+    res.on('render', (ctx: Context) => {
+      const timer = setInterval(() => res.emit('sse', 'heartbeat', Date.now() + ''), 1000);
+      ctx.req.on('close', () => res.emit('close'));
+      res.on('sse', (event: string, data: any) => {
+        if (!close) {
+          ctx.res.write(`event: ${event}\ndata: ${formatSseData(data)}\n\n`);
+        }
+      })
+      res.on('close', () => {
+        if (close) return;
+        res.emit('sse', 'close', '{}');
+        ctx.res.end();
+        clearInterval(timer);
+        close = true;
+      });
+    })
+    return res;
+  }
+}
+
+function formatSseData(data: any) {
+  if (typeof data === 'string') return data;
+  return JSON.stringify(data);
 }
