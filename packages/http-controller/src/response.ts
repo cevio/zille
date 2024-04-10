@@ -3,6 +3,7 @@ import { Stream } from "node:stream";
 import { SetOption } from 'cookies';
 import { EventEmitter } from 'node:events';
 import { clearInterval } from "node:timers";
+import { SSE } from "./sse";
 
 export class Response extends EventEmitter {
   public redirect_url: string;
@@ -48,6 +49,7 @@ export class Response extends EventEmitter {
 
   public render(ctx: Context) {
     ctx.status = this.status;
+    this.emit('render', ctx);
     if (this.headers.size) {
       const out: Record<string, string> = {}
       for (const [key, value] of this.headers.entries()) {
@@ -69,7 +71,6 @@ export class Response extends EventEmitter {
     if (this.data !== undefined) {
       ctx.body = this.data;
     }
-    this.emit('render', ctx);
     return this;
   }
 
@@ -127,27 +128,9 @@ export class Response extends EventEmitter {
    */
   static sse(status?: number) {
     const res = new Response(status);
-    let close = false;
-    res.data = undefined;
-    res.on('render', (ctx: Context) => {
-      ctx.res.setHeader('Content-Type', 'text/event-stream');
-      ctx.res.setHeader('Cache-Control', 'no-cache');
-      ctx.res.setHeader('Connection', 'keep-alive');
-      const timer = setInterval(() => res.emit('sse', 'heartbeat', Date.now() + ''), 1000);
-      ctx.req.on('close', () => res.emit('close'));
-      res.on('sse', (event: string, data: any) => {
-        if (!close) {
-          ctx.res.write(`event: ${event}\ndata: ${formatSseData(data)}\n\n`);
-        }
-      })
-      res.on('close', () => {
-        if (close) return;
-        res.emit('sse', 'close', '{}');
-        ctx.res.end();
-        clearInterval(timer);
-        close = true;
-      });
-    })
+    const sse = new SSE(res);
+    res.on('render', (ctx: Context) => sse.render(ctx));
+    res.data = sse;
     return res;
   }
 }
