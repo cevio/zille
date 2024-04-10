@@ -128,11 +128,11 @@ export class Response extends EventEmitter {
   static sse(status?: number) {
     const res = new Response(status);
     let close = false;
-    res.set('Content-Type', 'text/event-stream');
-    res.set('Cache-Control', 'no-cache');
-    res.set('Connection', 'keep-alive');
     res.data = undefined;
     res.on('render', (ctx: Context) => {
+      ctx.set('Content-Type', 'text/event-stream');
+      ctx.set('Cache-Control', 'no-cache');
+      ctx.set('Connection', 'keep-alive');
       const timer = setInterval(() => res.emit('sse', 'heartbeat', Date.now() + ''), 1000);
       ctx.req.on('close', () => res.emit('close'));
       res.on('sse', (event: string, data: any) => {
