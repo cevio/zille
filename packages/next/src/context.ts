@@ -1,5 +1,5 @@
 import { NS, container } from "./decroators";
-import { IClass, InjectAcceptType } from './types';
+import { IClass, IHookCallback, InjectAcceptType } from './types';
 
 export class Component {
   constructor(public readonly ctx: Context) { }
@@ -8,7 +8,7 @@ export class Component {
     return this.ctx.use<R, T>(clazz);
   }
 
-  public hook(key: string, callback: (ctx: Context) => unknown | Promise<unknown>) {
+  public hook(key: string, callback: IHookCallback) {
     this.ctx.hook(key, callback);
     return this;
   }
@@ -17,9 +17,9 @@ export class Component {
 export class Context extends Map {
   private readonly cache = new Map<InjectAcceptType, any>();
   private readonly pending = new Map<Function, Array<[(value: unknown) => void, (reason?: any) => void]>>();
-  private readonly hooks = new Map<string | symbol, (ctx: this) => any | Promise<any>>();
+  private readonly hooks = new Map<string | symbol, IHookCallback>();
 
-  public hook(key: string | symbol, callback: (ctx: this) => any | Promise<any>) {
+  public hook(key: string | symbol, callback: IHookCallback) {
     this.hooks.set(key, callback);
     return this;
   }
