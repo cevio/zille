@@ -4,7 +4,7 @@ import { IClass, IHookCallback, InjectAcceptType } from './types';
 export class Component {
   constructor(public readonly ctx: Context) { }
 
-  public use<R, T extends InjectAcceptType>(clazz: T) {
+  public use<R extends Component, T extends InjectAcceptType<R>>(clazz: T) {
     return this.ctx.use<R, T>(clazz);
   }
 
@@ -24,7 +24,7 @@ export class Context extends Map {
     return this;
   }
 
-  public use<R, T extends InjectAcceptType<R>>(clazz: T): Promise<T extends IClass<infer U> ? U : R> {
+  public use<R extends Component, T extends InjectAcceptType<R>>(clazz: T): Promise<T extends IClass<infer U> ? U : R> {
     if (this.cache.has(clazz)) return this.cache.get(clazz);
     if (typeof clazz !== 'function') {
       if (!this.hooks.has(clazz)) {
