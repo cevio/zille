@@ -150,6 +150,16 @@ importers:
         specifier: ^1.4.0
         version: 1.5.0
 
+  packages/next:
+    dependencies:
+      reflect-metadata:
+        specifier: ^0.2.1
+        version: 0.2.1
+    devDependencies:
+      fix-esm-import-path:
+        specifier: ^1.4.0
+        version: 1.5.0
+
   packages/service:
     dependencies:
       '@zille/application':

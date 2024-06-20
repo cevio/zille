@@ -9,6 +9,7 @@
     "pub": "lerna run build && git add . && git commit -am 'update' && git push && lerna publish",
     "init": "pnpm i",
     "watch": "lerna watch -- lerna run build",
+    "dev:next": "node --loader ts-node/esm packages/next/src/test.ts",
     "dev:core": "node --loader ts-node/esm packages/test/src/core.ts",
     "dev:service": "node --loader ts-node/esm packages/test/src/service.ts",
     "dev:http": "node --loader ts-node/esm packages/test/src/http.ts",
